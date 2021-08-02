@@ -17,13 +17,19 @@
 
 #include <cstdint>
 #include <fstream>
-#include <memory>
+#include <tuple>
+#include <vector>
 
 namespace output::ppm {
 struct PPMColor {
     using col_type = std::uint8_t;
     constexpr PPMColor(col_type r, col_type g, col_type b)
         : r_channel(r), g_channel(g), b_channel(b) {}
+
+    constexpr PPMColor(const PPMColor &other) = default;
+    constexpr PPMColor(PPMColor &&other) = default;
+    constexpr PPMColor &operator=(const PPMColor &other) = default;
+    constexpr PPMColor &operator=(PPMColor &&other) = default;
 
     constexpr std::tuple<col_type, col_type, col_type> get_colors() const {
         return {r_channel, g_channel, b_channel};
@@ -35,24 +41,26 @@ private:
     col_type r_channel{};
     col_type g_channel{};
     col_type b_channel{};
-};
+} __attribute__((aligned(4)));
 
 class PPMOutput {
 public:
     using size_type = std::size_t;
     using data_type = std::uint32_t;
 
-    constexpr PPMOutput() = default;
-
-    constexpr PPMOutput(size_type width, size_type height)
+    PPMOutput() = default;
+    PPMOutput(size_type width, size_type height)
         : image_width(width), image_height(height) {
-        image_data = std::make_unique<data_type[]>(width * height);  // NOLINT
+        image_data.reserve(size());
+        std::fill(image_data.begin(), image_data.end(), 0);
     }
 
+    PPMOutput(const PPMOutput &other) = default;
+    PPMOutput(PPMOutput &&other) = default;
+    PPMOutput &operator=(const PPMOutput &other) = default;
+    PPMOutput &operator=(PPMOutput &&other) = default;
     constexpr size_type width() const noexcept { return image_width; }
-
     constexpr size_type height() const noexcept { return image_height; }
-
     constexpr size_type size() const noexcept { return width() * height(); }
 
     data_type &at(size_type x, size_type y) {
@@ -78,23 +86,24 @@ public:
     void set_pixel_color(size_type x, size_type y, const PPMColor &color) {
         const auto index = coords_to_index(x, y);
         const auto [r, g, b] = color.get_colors();
+        image_data[index] = 0;
 
-        image_data[index] |= r << 24;
-        image_data[index] |= g << 16;
-        image_data[index] |= b << 8;
+        image_data[index] |= r << 24U;
+        image_data[index] |= g << 16U;
+        image_data[index] |= b << 8U;
     }
 
     PPMColor get_pixel_color(size_type x, size_type y) const {
         const auto index = coords_to_index(x, y);
 
-        const auto r = static_cast<std::uint8_t>(image_data[index] >> 24);
-        const auto g = static_cast<std::uint8_t>(image_data[index] >> 16);
-        const auto b = static_cast<std::uint8_t>(image_data[index] >> 8);
+        const auto r = static_cast<std::uint8_t>(image_data[index] >> 24U);
+        const auto g = static_cast<std::uint8_t>(image_data[index] >> 16U);
+        const auto b = static_cast<std::uint8_t>(image_data[index] >> 8U);
 
         return {r, g, b};
     }
 
-    data_type *get() { return image_data.get(); }
+    data_type *data() { return image_data.data(); }
 
     void write_file(const std::string &path) {
         std::ofstream file(path, std::ios::binary);
@@ -110,11 +119,11 @@ public:
             for (size_type x = 0; x < width(); ++x) {
                 const auto index = coords_to_index(x, y);
                 const auto r =
-                    static_cast<std::uint8_t>(image_data[index] >> 24);
+                    static_cast<std::uint8_t>(image_data[index] >> 24U);
                 const auto g =
-                    static_cast<std::uint8_t>(image_data[index] >> 16);
+                    static_cast<std::uint8_t>(image_data[index] >> 16U);
                 const auto b =
-                    static_cast<std::uint8_t>(image_data[index] >> 8);
+                    static_cast<std::uint8_t>(image_data[index] >> 8U);
 
                 file.write(reinterpret_cast<const char *>(&r), sizeof(r));
                 file.write(reinterpret_cast<const char *>(&g), sizeof(g));
@@ -137,7 +146,7 @@ private:
 
     size_type image_width{};
     size_type image_height{};
-    std::unique_ptr<data_type[]> image_data;
+    std::vector<data_type> image_data;
 };
 }  // namespace output::ppm
 #endif  // PPM_H_
