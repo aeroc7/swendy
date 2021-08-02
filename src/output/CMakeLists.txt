@@ -1,1 +1,1 @@
-add_subdirectory(raster)
+add_subdirectory(ppm)
