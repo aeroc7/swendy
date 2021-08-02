@@ -33,5 +33,5 @@ int main() {
     output_test.set_pixel_color(1, 1, WHITE_COLOR);
     output_test.set_pixel_color(2, 1, BLACK_COLOR);
 
-    output_test.write_file("/home/bennett/Dev/swendy/test.ppm");
+    output_test.write_file("test.ppm");
 }
