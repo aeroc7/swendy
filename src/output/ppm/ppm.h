@@ -49,10 +49,8 @@ public:
     using data_type = std::uint32_t;
 
     PPMOutput() = default;
-    PPMOutput(size_type width, size_type height)
-        : image_width(width), image_height(height) {
-        image_data.reserve(size());
-        std::fill(image_data.begin(), image_data.end(), 0);
+    PPMOutput(size_type width, size_type height) {
+        alloc_surface(width, height);
     }
 
     PPMOutput(const PPMOutput &other) = default;
@@ -62,6 +60,17 @@ public:
     constexpr size_type width() const noexcept { return image_width; }
     constexpr size_type height() const noexcept { return image_height; }
     constexpr size_type size() const noexcept { return width() * height(); }
+
+    void alloc_surface(size_type width, size_type height) {
+        image_width = width;
+        image_height = height;
+
+        image_data.reserve(size());
+
+        for (size_type i = 0; i < size(); ++i) {
+            image_data.push_back({});
+        }
+    }
 
     data_type &at(size_type x, size_type y) {
         const auto index = coords_to_index(x, y);
@@ -84,6 +93,10 @@ public:
     }
 
     void set_pixel_color(size_type x, size_type y, const PPMColor &color) {
+        if (size() == 0) {
+            out_of_range();
+        }
+
         const auto index = coords_to_index(x, y);
         const auto [r, g, b] = color.get_colors();
         image_data[index] = 0;
@@ -94,6 +107,10 @@ public:
     }
 
     PPMColor get_pixel_color(size_type x, size_type y) const {
+        if (size() == 0) {
+            out_of_range();
+        }
+
         const auto index = coords_to_index(x, y);
 
         const auto r = static_cast<std::uint8_t>(image_data[index] >> 24U);
