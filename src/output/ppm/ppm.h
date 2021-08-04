@@ -132,8 +132,8 @@ public:
         // Maximum color value
         file << "255" << '\n';
 
-        for (size_type y = 0; y < height(); ++y) {
-            for (size_type x = 0; x < width(); ++x) {
+        for (size_type y = 1; y <= height(); ++y) {
+            for (size_type x = 1; x <= width(); ++x) {
                 const auto index = coords_to_index(x, y);
                 const auto r =
                     static_cast<std::uint8_t>(image_data[index] >> 24U);
@@ -154,6 +154,13 @@ public:
 private:
     constexpr size_type coords_to_index(
         size_type x, size_type y) const noexcept {
+        if (x == 0 || y == 0) {
+            out_of_range();
+        }
+
+        x -= 1;
+        y -= 1;
+
         return x + (y * width());
     }
 
