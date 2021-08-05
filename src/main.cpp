@@ -12,26 +12,46 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <iostream>
+#include "util/line.h"
+#include "util/log.h"
+#include "obj/obj.h"
 
-#include "output/ppm/ppm.h"
-
-constexpr output::ppm::PPMColor RED_COLOR{255, 0, 0};
-constexpr output::ppm::PPMColor GREEN_COLOR{0, 255, 0};
-constexpr output::ppm::PPMColor BLUE_COLOR{0, 0, 255};
-constexpr output::ppm::PPMColor YELLOW_COLOR{255, 255, 0};
 constexpr output::ppm::PPMColor WHITE_COLOR{255, 255, 255};
-constexpr output::ppm::PPMColor BLACK_COLOR{0, 0, 0};
+
+constexpr auto SURFACE_WIDTH = 1000;
+constexpr auto SURFACE_HEIGHT = 1000;
+
+constexpr int raw_to_screen_cords(double pos) {
+    if (pos < 0) {
+        return static_cast<int>((500.0 - (std::fabs(pos) * (SURFACE_WIDTH / 2.0))));
+    }
+
+    return static_cast<int>(((pos * (SURFACE_WIDTH / 2.0)) + 500.0));
+}
 
 int main() {
-    output::ppm::PPMOutput output_test(3, 2);
+    try {
+        output::ppm::PPMOutput output_test(SURFACE_WIDTH, SURFACE_HEIGHT);
+        obj_parser::WavefrontObj obj("monkey.obj");
 
-    output_test.set_pixel_color(0, 0, RED_COLOR);
-    output_test.set_pixel_color(1, 0, GREEN_COLOR);
-    output_test.set_pixel_color(2, 0, BLUE_COLOR);
-    output_test.set_pixel_color(0, 1, YELLOW_COLOR);
-    output_test.set_pixel_color(1, 1, WHITE_COLOR);
-    output_test.set_pixel_color(2, 1, BLACK_COLOR);
+        for (std::size_t i = 0; i < obj.num_faces(); ++i) {
+            const auto &cur_face = obj.get_face(i);
 
-    output_test.write_file("test.ppm");
+            for (std::size_t j = 0; j < cur_face.vertices.size(); ++j) {
+                const auto &v0 = cur_face.vertices.at(j);
+                const auto &v1 = cur_face.vertices.at((j + 1) % 3);
+
+                const auto x0 = raw_to_screen_cords(v0.x);
+                const auto y0 = raw_to_screen_cords(v0.y);
+                const auto x1 = raw_to_screen_cords(v1.x);
+                const auto y1 = raw_to_screen_cords(v1.y);
+
+                util::plot_line(x0, y0, x1, y1, output_test, WHITE_COLOR);
+            }
+        }
+
+        output_test.write_file("test.ppm");
+    } catch (const std::exception &e) {
+        util::log << "Caught exception: " << e.what() << '\n';
+    }
 }
