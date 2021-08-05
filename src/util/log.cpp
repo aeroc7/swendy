@@ -12,28 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef STR_TO_NUM_H_
-#define STR_TO_NUM_H_
-
 #include "log.h"
 
-#include <charconv>
-#include <string>
-
 namespace util {
-template <typename T>
-inline T str_to_num(const std::string &str) noexcept {
-    T value;
-    const auto [ptr, ec] =
-        std::from_chars(str.data(), str.data() + str.size(), value);
-
-    if (ec == std::errc()) {
-        return value;
-    }
-
-    log << "Failed to convert " << str << " value";
-    return {};
+Logger log;
 }
-}  // namespace util
-
-#endif  // STR_TO_NUM_H_
