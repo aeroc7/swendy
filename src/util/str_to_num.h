@@ -31,7 +31,7 @@ inline T str_to_num(const std::string &str) noexcept {
         return value;
     }
 
-    log << "Failed to convert " << str << " value";
+    log << "Failed to convert " << str << " value" << '\n';
     return {};
 }
 }  // namespace util

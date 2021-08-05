@@ -41,7 +41,7 @@ public:
 
     template <typename T>
     friend LoggerData operator<<(LoggerData ld, const T &msg) noexcept {
-        std::cout << msg << '\n';
+        std::cout << msg;
         return ld;
     }
 };
