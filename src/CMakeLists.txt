@@ -1,7 +1,9 @@
 # Source file storage
 add_library(project_source INTERFACE)
 
+add_subdirectory(obj)
 add_subdirectory(output)
+add_subdirectory(util)
 
 # Standalone executable
 add_executable(swendy_standalone main.cpp)
