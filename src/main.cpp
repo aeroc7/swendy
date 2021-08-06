@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "obj/obj.h"
 #include "util/line.h"
 #include "util/log.h"
-#include "obj/obj.h"
 
 constexpr output::ppm::PPMColor WHITE_COLOR{255, 255, 255};
 
@@ -23,7 +23,8 @@ constexpr auto SURFACE_HEIGHT = 1000;
 
 constexpr int raw_to_screen_cords(double pos) {
     if (pos < 0) {
-        return static_cast<int>((500.0 - (std::fabs(pos) * (SURFACE_WIDTH / 2.0))));
+        return static_cast<int>(
+            (500.0 - (std::fabs(pos) * (SURFACE_WIDTH / 2.0))));
     }
 
     return static_cast<int>(((pos * (SURFACE_WIDTH / 2.0)) + 500.0));
@@ -41,12 +42,12 @@ int main() {
                 const auto &v0 = cur_face.vertices.at(j);
                 const auto &v1 = cur_face.vertices.at((j + 1) % 3);
 
-                const auto x0 = raw_to_screen_cords(v0.x);
-                const auto y0 = raw_to_screen_cords(v0.y);
-                const auto x1 = raw_to_screen_cords(v1.x);
-                const auto y1 = raw_to_screen_cords(v1.y);
+                const util::Vec2<int> p0(
+                    raw_to_screen_cords(v0.x), raw_to_screen_cords(v0.y));
+                const util::Vec2<int> p1(
+                    raw_to_screen_cords(v1.x), raw_to_screen_cords(v1.y));
 
-                util::plot_line(x0, y0, x1, y1, output_test, WHITE_COLOR);
+                util::plot_line(p0, p1, output_test, WHITE_COLOR);
             }
         }
 

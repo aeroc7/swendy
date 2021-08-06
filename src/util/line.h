@@ -20,43 +20,44 @@
 #include <type_traits>
 
 #include "../output/ppm/ppm.h"
+#include "vec2.h"
 
 // https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
 
 namespace util {
-inline void plot_line(int x0, int y0, int x1, int y1,
+inline void plot_line(Vec2<int> p0, Vec2<int> p1,
     ::output::ppm::PPMOutput &surface, const ::output::ppm::PPMColor &col) {
-    const int dx = std::abs(x1 - x0);
-    const int sx = x0 < x1 ? 1 : -1;
-    const int dy = -std::abs(y1 - y0);
-    const int sy = y0 < y1 ? 1 : -1;
+    const int dx = std::abs(p1.x() - p0.x());
+    const int sx = p0.x() < p1.x() ? 1 : -1;
+    const int dy = -std::abs(p1.y() - p0.y());
+    const int sy = p0.y() < p1.y() ? 1 : -1;
     int err = dx + dy;
     int e2;
 
     while (true) {
-        assert(x0 >= 0);
-        assert(y0 >= 0);
-        surface.set_pixel_color(
-            static_cast<std::size_t>(x0), static_cast<std::size_t>(y0), col);
+        assert(p0.x() >= 0);
+        assert(p0.y() >= 0);
+        surface.set_pixel_color(static_cast<std::size_t>(p0.x()),
+            static_cast<std::size_t>(p0.y()), col);
 
         e2 = err << 1U;
 
         if (e2 >= dy) {
-            if (x0 == x1) {
+            if (p0.x() == p1.x()) {
                 break;
             }
 
             err += dy;
-            x0 += sx;
+            p0.x() += sx;
         }
 
         if (e2 <= dx) {
-            if (y0 == y1) {
+            if (p0.y() == p1.y()) {
                 break;
             }
 
             err += dx;
-            y0 += sy;
+            p0.y() += sy;
         }
     }
 }
